@@ -20,81 +20,116 @@ namespace ProductCrudBack.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            IEnumerable<Product> products = await _productRepository.GetAllAsync();
+            try
+            {
+                IEnumerable<Product> products = await _productRepository.GetAllAsync();
             
-            return Ok(products);
+                return Ok(products);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
         // GET api/<Product>/5
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
         {
-            Product? product = await _productRepository.GetByIdAsync(id);
-
-            if (product == null)
+            try
             {
-                return NotFound();
-            }
+                Product? product = await _productRepository.GetByIdAsync(id);
 
-            return Ok(product);
+                if (product == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(product);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
         // POST api/<Product>
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] CreateProductDto productDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-            
-            Product product = new Product
+            try
             {
-                Name = productDto.Name,
-                Price = productDto.Price,
-                CategoryId = productDto.CategoryId
-            };
-            
-            await _productRepository.AddAsync(product);
-            
-            return Ok(product);
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                Product product = new Product
+                {
+                    Name = productDto.Name,
+                    Price = productDto.Price,
+                    CategoryId = productDto.CategoryId
+                };
+
+                await _productRepository.AddAsync(product);
+
+                return Ok(product);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
         // PUT api/<Product>/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] ProductUpdateDto productUpdateDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            Product? product = await _productRepository.GetByIdAsync(id);
-
-            if (product == null)
+            try
             {
-                return NotFound();
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                Product? product = await _productRepository.GetByIdAsync(id);
+
+                if (product == null)
+                {
+                    return NotFound();
+                }
+
+                product.Name = productUpdateDto.Name;
+                product.Price = productUpdateDto.Price;
+                product.CategoryId = productUpdateDto.CategoryId;
+
+                await _productRepository.UpdateAsync(product);
+
+                return Ok(product);
             }
-            
-            product.Name = productUpdateDto.Name;
-            product.Price = productUpdateDto.Price;
-            product.CategoryId = productUpdateDto.CategoryId;
-            
-            await _productRepository.UpdateAsync(product);
-            
-            return Ok(product);
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
 
         // DELETE api/<Product>/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            Product? product = await _productRepository.GetByIdAsync(id);
-
-            if (product == null)
+            try
             {
-                return NotFound();
-            }
-            
-            await _productRepository.DeleteAsync(product);
+                Product? product = await _productRepository.GetByIdAsync(id);
 
-            return Ok(product);
+                if (product == null)
+                {
+                    return NotFound();
+                }
+
+                await _productRepository.DeleteAsync(product);
+
+                return Ok(product);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
     }
 }
