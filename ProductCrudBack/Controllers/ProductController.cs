@@ -1,5 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using ProductCrudBack.DTOs.Product;
+using ProductCrudBack.Models;
+using ProductCrudBack.Repositories;
 
 namespace ProductCrudBack.Controllers
 {
@@ -7,36 +9,92 @@ namespace ProductCrudBack.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        // GET: api/<ProductController>
+        private readonly IProductRepository _productRepository;
+        
+        public ProductController(IProductRepository  productRepository)
+        {
+            _productRepository = productRepository;
+        }
+        
+        // GET: api/<Product>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> GetAll()
         {
-            return new string[] { "value1", "value2" };
+            IEnumerable<Product> products = await _productRepository.GetAllAsync();
+            
+            return Ok(products);
         }
 
-        // GET api/<ProductController>/5
+        // GET api/<Product>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            return "value";
+            Product? product = await _productRepository.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(product);
         }
 
-        // POST api/<ProductController>
+        // POST api/<Product>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] CreateProductDto productDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            
+            Product product = new Product
+            {
+                Name = productDto.Name,
+                Price = productDto.Price,
+                CategoryId = productDto.CategoryId
+            };
+            
+            await _productRepository.AddAsync(product);
+            
+            return Ok(product);
         }
 
-        // PUT api/<ProductController>/5
+        // PUT api/<Product>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] ProductUpdateDto productUpdateDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            Product? product = await _productRepository.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+            
+            product.Name = productUpdateDto.Name;
+            product.Price = productUpdateDto.Price;
+            product.CategoryId = productUpdateDto.CategoryId;
+            
+            await _productRepository.UpdateAsync(product);
+            
+            return Ok(product);
         }
 
-        // DELETE api/<ProductController>/5
+        // DELETE api/<Product>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            Product? product = await _productRepository.GetByIdAsync(id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+            
+            await _productRepository.DeleteAsync(product);
+
+            return Ok(product);
         }
     }
 }
