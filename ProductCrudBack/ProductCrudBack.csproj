@@ -8,6 +8,12 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.22" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.22">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.22" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.22" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.22">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,6 +26,7 @@
 
     <ItemGroup>
       <Folder Include="DTOs\Category\" />
+      <Folder Include="Migrations\" />
     </ItemGroup>
 
 </Project>
