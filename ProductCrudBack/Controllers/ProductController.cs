@@ -55,7 +55,7 @@ namespace ProductCrudBack.Controllers
 
         // POST api/<Product>
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] CreateProductDto productDto)
+        public async Task<IActionResult> Post([FromBody] ProductCreateDto dto)
         {
             try
             {
@@ -64,9 +64,9 @@ namespace ProductCrudBack.Controllers
 
                 Product product = new Product
                 {
-                    Name = productDto.Name,
-                    Price = productDto.Price,
-                    CategoryId = productDto.CategoryId
+                    Name = dto.Name,
+                    Price = dto.Price,
+                    CategoryId = dto.CategoryId
                 };
 
                 await _productRepository.AddAsync(product);

@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ProductCrudBack.DTOs.Product;
 
-public class CreateProductDto
+public class ProductCreateDto
 {
     [Required]
     public string Name { get; set; } = "";
