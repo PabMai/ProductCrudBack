@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProductCrudBack.Data;
 using ProductCrudBack.Repositories;
+using ProductCrudBack.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,8 @@ builder.Services.AddDbContext<ProductCrudDbContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped(typeof(IGenericService<>), typeof(GenericService<>));
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 var app = builder.Build();
 

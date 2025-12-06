@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductCrudBack.DTOs.Category;
 using ProductCrudBack.Models;
-using ProductCrudBack.Repositories;
+using ProductCrudBack.Services;
 using ProductCrudBack.Wrappers;
 
 namespace ProductCrudBack.Controllers
@@ -11,10 +11,10 @@ namespace ProductCrudBack.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private ICategoryRepository _categoryRepository;
-        public CategoryController(ICategoryRepository categoryRepository)
+        private ICategoryService _categoryService;
+        public CategoryController(ICategoryService categoryService)
         {
-            _categoryRepository = categoryRepository;
+            _categoryService = categoryService;
         }
 
         // GET: api/<CategoryController>
@@ -23,7 +23,7 @@ namespace ProductCrudBack.Controllers
         {
             try
             {
-                IEnumerable<Category> categories = await _categoryRepository.GetAllAsync();
+                IEnumerable<Category> categories = await _categoryService.GetAllAsync();
                 
                 return Ok(ResponseResult.ResponseValue(categories));
             }
@@ -42,7 +42,7 @@ namespace ProductCrudBack.Controllers
         {
             try
             {
-                Category? category = await _categoryRepository.GetByIdAsync(id);
+                Category? category = await _categoryService.GetByIdAsync(id);
 
                 if (category == null)
                 {
@@ -68,11 +68,9 @@ namespace ProductCrudBack.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ResponseResult.ResponseError(ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .ToDictionary(x => x.Key, 
-                            x => x.Value.Errors.Select(x => x.ErrorMessage))
-                        ));
+                    return BadRequest(
+                        ResponseResult.ResponseError(_categoryService.GetModelStateErrorsAsync(ModelState))
+                    );
                 }
 
                 Category category = new Category
@@ -80,7 +78,7 @@ namespace ProductCrudBack.Controllers
                     Name = dto.Name
                 };
                 
-                await _categoryRepository.AddAsync(category);
+                await _categoryService.AddAsync(category);
                 
                 return Ok(ResponseResult.ResponseValue(category));
             }
@@ -101,10 +99,12 @@ namespace ProductCrudBack.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    return BadRequest(
+                        ResponseResult.ResponseError(_categoryService.GetModelStateErrorsAsync(ModelState))
+                    );
                 }
                 
-                Category? category = await _categoryRepository.GetByIdAsync(id);
+                Category? category = await _categoryService.GetByIdAsync(id);
 
                 if (category == null)
                 {
@@ -113,7 +113,7 @@ namespace ProductCrudBack.Controllers
                 
                 category.Name = categoryUpdateDto.Name;
                 
-                await _categoryRepository.UpdateAsync(category);
+                await _categoryService.UpdateAsync(category);
                 
                 return Ok(ResponseResult.ResponseValue(category));
             }
@@ -132,14 +132,14 @@ namespace ProductCrudBack.Controllers
         {
             try
             {
-                Category? category = await _categoryRepository.GetByIdAsync(id);
+                Category? category = await _categoryService.GetByIdAsync(id);
 
                 if (category == null)
                 {
                     return NotFound(ResponseResult.ResponseError($"Category with id {id} not found"));
                 }
                 
-                await _categoryRepository.DeleteAsync(category);
+                await _categoryService.DeleteAsync(category);
                 
                 return Accepted();
             }

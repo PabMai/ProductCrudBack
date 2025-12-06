@@ -1,6 +1,6 @@
-namespace ProductCrudBack.Repositories;
-
 using System.Linq.Expressions;
+
+namespace ProductCrudBack.Repositories;
 
 public interface IGenericRepository<T> where T : class
 {
