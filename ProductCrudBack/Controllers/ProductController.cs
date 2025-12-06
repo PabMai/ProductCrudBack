@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using ProductCrudBack.DTOs.Product;
 using ProductCrudBack.Models;
-using ProductCrudBack.Repositories;
+using ProductCrudBack.Services;
 using ProductCrudBack.Wrappers;
 
 namespace ProductCrudBack.Controllers
@@ -10,11 +10,11 @@ namespace ProductCrudBack.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
+        private readonly IProductService _productService;
         
-        public ProductController(IProductRepository  productRepository)
+        public ProductController(IProductService  productService)
         {
-            _productRepository = productRepository;
+            _productService = productService;
         }
         
         // GET: api/<Product>
@@ -23,7 +23,7 @@ namespace ProductCrudBack.Controllers
         {
             try
             {
-                IEnumerable<Product> products = await _productRepository.GetAllAsync();
+                IEnumerable<Product> products = await _productService.GetAllAsync();
             
                 return Ok(ResponseResult.ResponseValue(products));
             }
@@ -42,7 +42,7 @@ namespace ProductCrudBack.Controllers
         {
             try
             {
-                Product? product = await _productRepository.GetByIdAsync(id);
+                Product? product = await _productService.GetByIdAsync(id);
 
                 if (product == null)
                 {
@@ -67,12 +67,12 @@ namespace ProductCrudBack.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ResponseResult.ResponseError(ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .ToDictionary(x => x.Key, 
-                            x => x.Value.Errors.Select(x => x.ErrorMessage))
-                    ));
-
+                {
+                    return BadRequest(
+                            ResponseResult.ResponseError(_productService.GetModelStateErrorsAsync(ModelState))
+                        );
+                }
+                
                 Product product = new Product
                 {
                     Name = dto.Name,
@@ -80,7 +80,7 @@ namespace ProductCrudBack.Controllers
                     CategoryId = dto.CategoryId
                 };
 
-                await _productRepository.AddAsync(product);
+                await _productService.AddAsync(product);
 
                 return Ok(ResponseResult.ResponseValue(product));
             }
@@ -100,13 +100,13 @@ namespace ProductCrudBack.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ResponseResult.ResponseError(ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .ToDictionary(x => x.Key, 
-                            x => x.Value.Errors.Select(x => x.ErrorMessage))
-                    ));
-
-                Product? product = await _productRepository.GetByIdAsync(id);
+                {
+                    return BadRequest(
+                        ResponseResult.ResponseError(_productService.GetModelStateErrorsAsync(ModelState))
+                    );
+                }
+                
+                Product? product = await _productService.GetByIdAsync(id);
 
                 if (product == null)
                 {
@@ -117,7 +117,7 @@ namespace ProductCrudBack.Controllers
                 product.Price = productUpdateDto.Price;
                 product.CategoryId = productUpdateDto.CategoryId;
 
-                await _productRepository.UpdateAsync(product);
+                await _productService.UpdateAsync(product);
 
                 return Ok(ResponseResult.ResponseValue(product));
             }
@@ -136,14 +136,14 @@ namespace ProductCrudBack.Controllers
         {
             try
             {
-                Product? product = await _productRepository.GetByIdAsync(id);
+                Product? product = await _productService.GetByIdAsync(id);
 
                 if (product == null)
                 {
                     return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
                 }
 
-                await _productRepository.DeleteAsync(product);
+                await _productService.DeleteAsync(product);
 
                 return Ok(ResponseResult.ResponseValue(product));
             }
