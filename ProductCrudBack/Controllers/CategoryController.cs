@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProductCrudBack.DTOs.Category;
 using ProductCrudBack.Models;
 using ProductCrudBack.Repositories;
+using ProductCrudBack.Wrappers;
 
 namespace ProductCrudBack.Controllers
 {
@@ -24,11 +25,14 @@ namespace ProductCrudBack.Controllers
             {
                 IEnumerable<Category> categories = await _categoryRepository.GetAllAsync();
                 
-                return Ok(categories);
+                return Ok(ResponseResult.ResponseValue(categories));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -42,14 +46,17 @@ namespace ProductCrudBack.Controllers
 
                 if (category == null)
                 {
-                    return NotFound();
+                    return NotFound(ResponseResult.ResponseError($"Category with id {id} not found"));
                 }
                 
                 return Ok(category);
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -61,7 +68,11 @@ namespace ProductCrudBack.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    return BadRequest(ResponseResult.ResponseError(ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .ToDictionary(x => x.Key, 
+                            x => x.Value.Errors.Select(x => x.ErrorMessage))
+                        ));
                 }
 
                 Category category = new Category
@@ -71,11 +82,14 @@ namespace ProductCrudBack.Controllers
                 
                 await _categoryRepository.AddAsync(category);
                 
-                return Ok(category);
+                return Ok(ResponseResult.ResponseValue(category));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                    );
             }
         }
 
@@ -94,18 +108,21 @@ namespace ProductCrudBack.Controllers
 
                 if (category == null)
                 {
-                    return NotFound();
+                    return NotFound(ResponseResult.ResponseError($"Category with id {id} not found"));
                 }
                 
                 category.Name = categoryUpdateDto.Name;
                 
                 await _categoryRepository.UpdateAsync(category);
                 
-                return Ok(category);
+                return Ok(ResponseResult.ResponseValue(category));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -119,16 +136,19 @@ namespace ProductCrudBack.Controllers
 
                 if (category == null)
                 {
-                    return NotFound();
+                    return NotFound(ResponseResult.ResponseError($"Category with id {id} not found"));
                 }
                 
                 await _categoryRepository.DeleteAsync(category);
                 
-                return Ok(category);
+                return Accepted();
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
     }

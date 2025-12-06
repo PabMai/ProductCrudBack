@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using ProductCrudBack.DTOs.Product;
 using ProductCrudBack.Models;
 using ProductCrudBack.Repositories;
+using ProductCrudBack.Wrappers;
 
 namespace ProductCrudBack.Controllers
 {
@@ -24,11 +25,14 @@ namespace ProductCrudBack.Controllers
             {
                 IEnumerable<Product> products = await _productRepository.GetAllAsync();
             
-                return Ok(products);
+                return Ok(ResponseResult.ResponseValue(products));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -42,14 +46,17 @@ namespace ProductCrudBack.Controllers
 
                 if (product == null)
                 {
-                    return NotFound();
+                    return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
                 }
 
                 return Ok(product);
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -60,7 +67,11 @@ namespace ProductCrudBack.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                    return BadRequest(ResponseResult.ResponseError(ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .ToDictionary(x => x.Key, 
+                            x => x.Value.Errors.Select(x => x.ErrorMessage))
+                    ));
 
                 Product product = new Product
                 {
@@ -71,11 +82,14 @@ namespace ProductCrudBack.Controllers
 
                 await _productRepository.AddAsync(product);
 
-                return Ok(product);
+                return Ok(ResponseResult.ResponseValue(product));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -86,13 +100,17 @@ namespace ProductCrudBack.Controllers
             try
             {
                 if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
+                    return BadRequest(ResponseResult.ResponseError(ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .ToDictionary(x => x.Key, 
+                            x => x.Value.Errors.Select(x => x.ErrorMessage))
+                    ));
 
                 Product? product = await _productRepository.GetByIdAsync(id);
 
                 if (product == null)
                 {
-                    return NotFound();
+                    return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
                 }
 
                 product.Name = productUpdateDto.Name;
@@ -101,11 +119,14 @@ namespace ProductCrudBack.Controllers
 
                 await _productRepository.UpdateAsync(product);
 
-                return Ok(product);
+                return Ok(ResponseResult.ResponseValue(product));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
 
@@ -119,16 +140,19 @@ namespace ProductCrudBack.Controllers
 
                 if (product == null)
                 {
-                    return NotFound();
+                    return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
                 }
 
                 await _productRepository.DeleteAsync(product);
 
-                return Ok(product);
+                return Ok(ResponseResult.ResponseValue(product));
             }
             catch (Exception e)
             {
-                return StatusCode(500, e.Message);
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError, 
+                    ResponseResult.ResponseError(e.Message)
+                );
             }
         }
     }
