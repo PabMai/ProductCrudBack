@@ -24,14 +24,16 @@ namespace ProductCrudBack.Controllers
             try
             {
                 IEnumerable<Product> products = await _productService.GetAllAsync();
+
+                IEnumerable<ProductResponse> productsData = new ProductResponse().ToEnumerable(products);
             
-                return Ok(ResponseResult.ResponseValue(products));
+                return Ok(ResponseResult<IEnumerable<ProductResponse>>.Success(productsData));
             }
             catch (Exception e)
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError, 
-                    ResponseResult.ResponseError(e.Message)
+                    ResponseResult<string>.Fail(e.Message)
                 );
             }
         }
@@ -46,16 +48,16 @@ namespace ProductCrudBack.Controllers
 
                 if (product == null)
                 {
-                    return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
+                    return NotFound(ResponseResult<string>.Fail($"Product with id {id} not found"));
                 }
-
-                return Ok(product);
+                
+                return Ok(ResponseResult<ProductResponse>.Success(new ProductResponse(product)));
             }
             catch (Exception e)
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError, 
-                    ResponseResult.ResponseError(e.Message)
+                    ResponseResult<string>.Fail(e.Message)
                 );
             }
         }
@@ -68,8 +70,9 @@ namespace ProductCrudBack.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    var errors = await _productService.GetModelStateErrorsAsync(ModelState);
                     return BadRequest(
-                            ResponseResult.ResponseError(_productService.GetModelStateErrorsAsync(ModelState))
+                            ResponseResult<Dictionary<string, IEnumerable<string>>>.Fail(errors)
                         );
                 }
                 
@@ -82,13 +85,13 @@ namespace ProductCrudBack.Controllers
 
                 await _productService.AddAsync(product);
 
-                return Ok(ResponseResult.ResponseValue(product));
+                return Ok(ResponseResult<ProductResponse>.Success(new ProductResponse(product)));
             }
             catch (Exception e)
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError, 
-                    ResponseResult.ResponseError(e.Message)
+                    ResponseResult<string>.Fail(e.Message)
                 );
             }
         }
@@ -101,8 +104,9 @@ namespace ProductCrudBack.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    var erros = await _productService.GetModelStateErrorsAsync(ModelState);
                     return BadRequest(
-                        ResponseResult.ResponseError(_productService.GetModelStateErrorsAsync(ModelState))
+                        ResponseResult<Dictionary<string, IEnumerable<string>>>.Fail(erros)
                     );
                 }
                 
@@ -110,7 +114,7 @@ namespace ProductCrudBack.Controllers
 
                 if (product == null)
                 {
-                    return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
+                    return NotFound(ResponseResult<string>.Fail($"Product with id {id} not found"));
                 }
 
                 product.Name = productUpdateDto.Name;
@@ -119,13 +123,13 @@ namespace ProductCrudBack.Controllers
 
                 await _productService.UpdateAsync(product);
 
-                return Ok(ResponseResult.ResponseValue(product));
+                return Ok(ResponseResult<ProductResponse>.Success(new ProductResponse(product)));
             }
             catch (Exception e)
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError, 
-                    ResponseResult.ResponseError(e.Message)
+                    ResponseResult<string>.Fail(e.Message)
                 );
             }
         }
@@ -140,18 +144,18 @@ namespace ProductCrudBack.Controllers
 
                 if (product == null)
                 {
-                    return NotFound(ResponseResult.ResponseError($"Product with id {id} not found"));
+                    return NotFound(ResponseResult<string>.Fail($"Product with id {id} not found"));
                 }
 
                 await _productService.DeleteAsync(product);
 
-                return Ok(ResponseResult.ResponseValue(product));
+                return Ok(ResponseResult<ProductResponse?>.Success(null));
             }
             catch (Exception e)
             {
                 return StatusCode(
                     StatusCodes.Status500InternalServerError, 
-                    ResponseResult.ResponseError(e.Message)
+                    ResponseResult<string>.Fail(e.Message)
                 );
             }
         }

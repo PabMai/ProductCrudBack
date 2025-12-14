@@ -1,24 +1,14 @@
-using Azure;
-
 namespace ProductCrudBack.Wrappers;
 
-public class ResponseResult
+public class ResponseResult<T>
 {
-    public static object ResponseValue(object data)
-    {
-        return new
-        {
-            status = true,
-            data = data
-        };
-    }
+    public bool IsSuccess { get; init; }
+    public T? Data { get; init; }
+    public T? Error { get; init; }
 
-    public static object ResponseError(object error)
-    {
-        return new
-        {
-            status = false,
-            error = error
-        };
-    }
+    public static ResponseResult<T> Success(T value) =>
+        new() { IsSuccess = true, Data = value };
+
+    public static ResponseResult<T> Fail(T error) =>
+        new() { IsSuccess = false, Error = error };
 }
